@@ -38,10 +38,19 @@ builder.Services.ConfigureLoggerService();
 
 builder.Services.AddAutoMapper(typeof(Program));
 
-var app = builder.Build();
+builder.Services.AddAuthentication();
 
-var logger = app.Services.GetRequiredService<ILoggerManager>();
-app.ConfigureExceptionHandler(logger);
+builder.Services.ConfigureIdentity();
+
+builder.Services.ConfigureJWT(builder.Configuration);
+
+var app = builder.Build();
+ 
+app.ConfigureExceptionHandler(app.Services.GetRequiredService<ILoggerManager>());
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 if (app.Environment.IsProduction())
     app.UseHsts();
@@ -56,6 +65,8 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 
 app.UseCors("CorePolicy");
+
+app.UseResponseCaching();
 
 app.UseAuthorization();
 
